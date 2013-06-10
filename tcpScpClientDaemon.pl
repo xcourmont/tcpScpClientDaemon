@@ -7,6 +7,7 @@ use IO::Socket;
 use sigtrap qw(handler my_handler HUP INT QUIT KILL TERM STOP);
 use POSIX;
 use File::Basename;
+use JSON;
 
 my $oldmode = shift || 0;
 my($pid, $sess_id, $i);
@@ -32,8 +33,8 @@ foreach $i (0 .. 64) { POSIX::close($i); }
 
 ## Reouverture de stderr, stdout, stdin vers /dev/null
 open(STDIN,  "+>/dev/null");
-open(STDOUT, "+>&STDIN");
-open(STDERR, "+>&STDIN");
+open(STDOUT, ">/tmp/tcpScpClientDaemon.out");
+open(STDERR, ">/tmp/tcpScpClientDaemon.err");
 
 $oldmode ? $sess_id : 0;
 
@@ -97,14 +98,17 @@ sub listFile {
             if ( $readLine =~ /$fileEI/ ) {
                $pourcentage = $readLine;
                $pourcentage =~ s/.* (.*%) .*/\1/;
-               print $client "fileEI : $fileEI, machine : $machine , pourcentage : $pourcentage\n";
-#                print $client "type : $type, machine : $machine, fileEI : $fileEI, pid : $pid, pourcentage : $pourcentage, vitesse : $vitesse\n";
+               $FILEDEF{$pid}{'fileEI'}=$fileEI;
+               $FILEDEF{$pid}{'machine'}=$machine;
+               $FILEDEF{$pid}{'pourcentage'}=$pourcentage;
             }
          }
          close MYFILE;
       }
    }
    closedir(DIR);
+   $json_text = to_json(\%FILEDEF, {utf8 => 1, pretty => 1});
+   print $client "$json_text\n";
    &quit($client);
 }
 
