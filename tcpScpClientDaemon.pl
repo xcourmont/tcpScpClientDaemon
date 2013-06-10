@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-$INFO{'version_tcpscpd'}="0.28";
+$INFO{'version_tcpscpd'}="0.01";
 
 use POSIX ":sys_wait_h";
 use IO::Socket;
